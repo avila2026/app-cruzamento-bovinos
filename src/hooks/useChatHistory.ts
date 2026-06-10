@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ChatMessage } from '../services/ollamaClient';
 
 export interface ChatSession {
@@ -12,21 +12,31 @@ export interface ChatSession {
 const STORAGE_KEY = 'cattlegen_chat_sessions';
 
 export function useChatHistory() {
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-
-  // Load sessions on mount
-  useEffect(() => {
+  const [sessions, setSessions] = useState<ChatSession[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        setSessions(parsed);
+        return JSON.parse(saved);
       } catch (e) {
         console.error('Failed to parse chat history', e);
       }
     }
-  }, []);
+    return [];
+  });
+
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as ChatSession[];
+        const recent = parsed.filter((s) => !s.archived);
+        return recent[0]?.id || null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
 
   // Save sessions whenever they change
   useEffect(() => {
@@ -81,9 +91,9 @@ export function useChatHistory() {
     );
   }, []);
 
-  const activeSession = sessions.find((s) => s.id === activeSessionId) || null;
-  const recentSessions = sessions.filter((s) => !s.archived);
-  const archivedSessions = sessions.filter((s) => s.archived);
+  const activeSession = useMemo(() => sessions.find((s) => s.id === activeSessionId) || null, [sessions, activeSessionId]);
+  const recentSessions = useMemo(() => sessions.filter((s) => !s.archived), [sessions]);
+  const archivedSessions = useMemo(() => sessions.filter((s) => s.archived), [sessions]);
 
   return {
     sessions,

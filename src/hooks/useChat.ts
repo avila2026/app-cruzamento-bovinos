@@ -22,11 +22,8 @@ const SYSTEM_PROMPT: Message = {
 export function useChat(
   initialMessages: Message[] = [],
   onMessagesChange?: (messages: Message[]) => void,
-  animalId?: string,
-  sessionId?: string
+  animalId?: string
 ) {
-  const [messages, setMessagesState] = useState<Message[]>(initialMessages);
-  const [prevSessionId, setPrevSessionId] = useState<string | undefined>(sessionId);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -37,11 +34,9 @@ export function useChat(
   
   const abortRef = useRef<AbortController | null>(null);
 
-  // Sync state when session changes
-  if (sessionId !== prevSessionId) {
-    setPrevSessionId(sessionId);
-    setMessagesState(initialMessages);
-  }
+  // We use initialMessages directly as our source of truth.
+  // This avoids duplicate state between this hook and the parent.
+  const messages = initialMessages;
 
   const setProvider = useCallback((newProvider: ProviderType) => {
     setProviderState(newProvider);
@@ -54,13 +49,12 @@ export function useChat(
 
   const setMessages = useCallback(
     (updater: Message[] | ((prev: Message[]) => Message[])) => {
-      setMessagesState((prev) => {
-        const next = typeof updater === 'function' ? updater(prev) : updater;
-        onMessagesChange?.(next);
-        return next;
-      });
+      if (onMessagesChange) {
+        const next = typeof updater === 'function' ? updater(messages) : updater;
+        onMessagesChange(next);
+      }
     },
-    [onMessagesChange]
+    [messages, onMessagesChange]
   );
 
   const send = useCallback(
@@ -157,9 +151,9 @@ export function useChat(
   }, [provider]);
 
   const clear = useCallback(() => {
-    setMessages([]);
+    onMessagesChange?.([]);
     setError(null);
-  }, [setMessages]);
+  }, [onMessagesChange]);
 
   return { 
     messages, 

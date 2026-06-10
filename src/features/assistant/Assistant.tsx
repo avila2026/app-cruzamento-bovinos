@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useChat } from '../../hooks/useChat';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useChat, type Message } from '../../hooks/useChat';
 import { useChatHistory } from '../../hooks/useChatHistory';
 
 import { Bot, Send, Square, Trash2, User, Copy, Check, Paperclip, MessageSquare, Plus, Archive, ArchiveRestore } from 'lucide-react';
@@ -24,6 +24,16 @@ const Assistant: React.FC = () => {
     archiveSession,
   } = useChatHistory();
 
+  // Memoized callback to update messages in history to prevent hook recreation loops
+  const handleMessagesChange = useCallback(
+    (newMessages: Message[]) => {
+      if (activeSessionId) {
+        updateSessionMessages(activeSessionId, newMessages);
+      }
+    },
+    [activeSessionId, updateSessionMessages]
+  );
+
   // Initialize with the active session's messages, if any
   const {
     messages,
@@ -40,13 +50,7 @@ const Assistant: React.FC = () => {
     setThinkLevel,
   } = useChat(
     activeSession?.messages || [],
-    (newMessages) => {
-      if (activeSessionId) {
-        updateSessionMessages(activeSessionId, newMessages);
-      }
-    },
-    undefined,
-    activeSessionId || undefined
+    handleMessagesChange
   );
 
   const [input, setInput] = useState('');
@@ -75,7 +79,6 @@ const Assistant: React.FC = () => {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeSessionId) createSession(input);
     send(input);
     setInput('');
   };
@@ -267,7 +270,6 @@ const Assistant: React.FC = () => {
                     key={s}
                     type="button"
                     onClick={() => {
-                      if (!activeSessionId) createSession(s);
                       send(s);
                     }}
                     className="text-left text-sm px-4 py-2 rounded-lg border border-neutral-800 bg-neutral-950/50 hover:border-emerald-500/40 hover:bg-emerald-500/5 text-neutral-300 transition-colors"
