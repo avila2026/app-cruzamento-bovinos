@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Animal } from '../../types';
+import type { Animal } from '../../types';
 import { Plus, Search, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
 

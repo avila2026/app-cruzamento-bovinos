@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Animal, SexoAnimal } from '../../types';
+import type { Animal, SexoAnimal } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { Save, ArrowLeft, ImagePlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
