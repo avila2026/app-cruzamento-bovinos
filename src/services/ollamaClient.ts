@@ -8,6 +8,7 @@ export type ChatRole = 'system' | 'user' | 'assistant';
 export interface ChatMessage {
   role: ChatRole;
   content: string;
+  thinking?: string;
 }
 
 const BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || '/ollama/v1';
@@ -16,8 +17,8 @@ export const DEFAULT_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gpt-oss:120b-
 interface StreamOptions {
   model?: string;
   signal?: AbortSignal;
-  /** Chamado a cada pedaço de texto recebido do modelo. */
-  onDelta: (textChunk: string) => void;
+  /** Chamado a cada pedaço de texto ou pensamento recebido do modelo. */
+  onDelta: (delta: { content?: string; thinking?: string }) => void;
 }
 
 /**
@@ -31,7 +32,12 @@ export async function streamChat(messages: ChatMessage[], opts: StreamOptions): 
     signal: opts.signal,
     body: JSON.stringify({
       model: opts.model || DEFAULT_MODEL,
-      messages,
+      messages: messages.map(({ role, content, thinking }) => ({
+        role,
+        content,
+        // include thinking block if it exists to preserve model reasoning history
+        ...(thinking ? { thinking } : {})
+      })),
       stream: true,
     }),
   });
@@ -62,8 +68,14 @@ export async function streamChat(messages: ChatMessage[], opts: StreamOptions): 
       if (payload === '[DONE]') return;
       try {
         const json = JSON.parse(payload);
-        const delta: string | undefined = json.choices?.[0]?.delta?.content;
-        if (delta) opts.onDelta(delta);
+        const choice = json.choices?.[0];
+        const content: string | undefined = choice?.delta?.content;
+        // reasoning_content is standard for DeepSeek, thinking is standard for Ollama's Qwen/Llama
+        const thinking: string | undefined = choice?.delta?.thinking || choice?.delta?.reasoning_content;
+
+        if (content || thinking) {
+          opts.onDelta({ content, thinking });
+        }
       } catch {
         // Linha parcial/keep-alive — ignora.
       }

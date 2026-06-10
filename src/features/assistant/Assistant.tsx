@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useChat } from '../../hooks/useChat';
 import { useChatHistory } from '../../hooks/useChatHistory';
-import { DEFAULT_MODEL } from '../../services/ollamaClient';
+
 import { Bot, Send, Square, Trash2, User, Copy, Check, Paperclip, MessageSquare, Plus, Archive, ArchiveRestore } from 'lucide-react';
 
 const SUGESTOES = [
@@ -167,7 +167,7 @@ const Assistant: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-100">Assistente Genético</h1>
             <p className="text-sm text-neutral-500">
-              Modelo: <span className="font-mono text-neutral-400">{DEFAULT_MODEL}</span>
+              Modelo: <span className="font-mono text-neutral-400">Claude 3.5 Sonnet (Edge)</span>
             </p>
           </div>
           {messages.length > 0 && (
@@ -212,43 +212,59 @@ const Assistant: React.FC = () => {
               </div>
             </div>
           ) : (
-            messages.map((m, i) => (
-              <div key={i} className={`flex gap-3 group ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div
-                  className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${
-                    m.role === 'user' ? 'bg-neutral-700' : 'bg-emerald-600'
-                  }`}
-                >
-                  {m.role === 'user' ? <User size={18} /> : <Bot size={18} className="text-neutral-950" />}
-                </div>
-                <div
-                  className={`relative rounded-xl px-4 py-2.5 max-w-[80%] whitespace-pre-wrap leading-relaxed ${
-                    m.role === 'user'
-                      ? 'bg-neutral-800 text-gray-100'
-                      : 'bg-neutral-950/60 border border-neutral-800 text-gray-200'
-                  }`}
-                >
-                  {m.content || (isLoading && i === messages.length - 1 ? (
+          messages.map((m, i) => (
+            <div key={i} className={`flex gap-3 group ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+              <div
+                className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${
+                  m.role === 'user' ? 'bg-neutral-700' : 'bg-emerald-600'
+                }`}
+              >
+                {m.role === 'user' ? <User size={18} /> : <Bot size={18} className="text-neutral-950" />}
+              </div>
+              <div
+                className={`relative rounded-xl px-4 py-2.5 max-w-[80%] leading-relaxed ${
+                  m.role === 'user'
+                    ? 'bg-neutral-800 text-gray-100'
+                    : 'bg-neutral-950/60 border border-neutral-800 text-gray-200'
+                }`}
+              >
+                {/* Thinking / Reasoning Block */}
+                {m.thinking && (
+                  <details className="mb-2 text-xs text-neutral-400 bg-neutral-900 border border-neutral-850 rounded-lg p-2 overflow-x-auto" open>
+                    <summary className="cursor-pointer font-medium hover:text-neutral-300 select-none flex items-center gap-1">
+                      <Bot size={12} className="text-emerald-500 animate-pulse" />
+                      <span>Raciocínio Interno</span>
+                    </summary>
+                    <div className="mt-1.5 pl-2 border-l border-neutral-800 whitespace-pre-wrap font-mono text-[10px] leading-normal opacity-80">
+                      {m.thinking}
+                    </div>
+                  </details>
+                )}
+
+                {/* Normal Content */}
+                <div className="whitespace-pre-wrap">
+                  {m.content || (isLoading && i === messages.length - 1 && !m.thinking ? (
                     <span className="inline-flex gap-1">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse [animation-delay:150ms]" />
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse [animation-delay:300ms]" />
                     </span>
                   ) : '')}
-
-                  {/* Copy Button */}
-                  {m.content && m.role === 'assistant' && (
-                    <button
-                      onClick={() => handleCopy(m.content, i)}
-                      className="absolute -right-10 top-2 p-1.5 rounded-md text-neutral-500 hover:text-gray-300 hover:bg-neutral-800 opacity-0 group-hover:opacity-100 transition-all"
-                      title="Copiar mensagem"
-                    >
-                      {copiedIndex === i ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
-                    </button>
-                  )}
                 </div>
+
+                {/* Copy Button */}
+                {m.content && m.role === 'assistant' && (
+                  <button
+                    onClick={() => handleCopy(m.content, i)}
+                    className="absolute -right-10 top-2 p-1.5 rounded-md text-neutral-500 hover:text-gray-300 hover:bg-neutral-800 opacity-0 group-hover:opacity-100 transition-all"
+                    title="Copiar mensagem"
+                  >
+                    {copiedIndex === i ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
+                  </button>
+                )}
               </div>
-            ))
+            </div>
+          ))
           )}
         </div>
 
