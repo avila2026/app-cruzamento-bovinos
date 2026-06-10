@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import type { Animal, ProgramaAvaliacao, TraitDictionary } from '../../types';
 import { ArrowLeft, Save } from 'lucide-react';
+import { toast } from 'sonner';
 
 const PROGRAMAS: ProgramaAvaliacao[] = ['GENEPLUS', 'PMGZ', 'ANCP'];
 
@@ -97,7 +98,7 @@ const EvaluationForm: React.FC = () => {
 
     const filled = availableTraits.filter(({ code }) => inputs[code]?.value?.trim());
     if (filled.length === 0) {
-      alert('Preencha ao menos uma característica (DEP).');
+      toast.error('Preencha ao menos uma característica (DEP).');
       return;
     }
 
@@ -149,11 +150,11 @@ const EvaluationForm: React.FC = () => {
       const { error: traitError } = await supabase.from('evaluation_trait').insert(traitRows);
       if (traitError) throw traitError;
 
-      alert(isEdit ? 'Avaliação atualizada com sucesso!' : 'Avaliação lançada com sucesso!');
+      toast.success(isEdit ? 'Avaliação atualizada com sucesso!' : 'Avaliação lançada com sucesso!');
       navigate(`/animais/${animalId}`);
     } catch (err: any) {
       console.error(err);
-      alert('Erro ao salvar avaliação: ' + err.message);
+      toast.error('Erro ao salvar avaliação: ' + err.message);
     } finally {
       setLoading(false);
     }

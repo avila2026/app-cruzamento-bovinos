@@ -19,6 +19,7 @@ import {
   TrendingDown,
   TrendingUp,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const PROGRAMAS: ProgramaAvaliacao[] = ['GENEPLUS', 'PMGZ', 'ANCP'];
 
@@ -99,7 +100,7 @@ const AnimalDetails: React.FC = () => {
       return;
     const { error } = await supabase.from('animal').delete().eq('id', animal.id);
     if (error) {
-      alert('Erro ao excluir: ' + error.message);
+      toast.error('Erro ao excluir: ' + error.message);
       return;
     }
     navigate('/animais');
@@ -109,7 +110,7 @@ const AnimalDetails: React.FC = () => {
     if (!confirm('Excluir esta avaliação e todas as suas DEPs?')) return;
     const { error } = await supabase.from('evaluation').delete().eq('id', evaluationId);
     if (error) {
-      alert('Erro ao excluir avaliação: ' + error.message);
+      toast.error('Erro ao excluir avaliação: ' + error.message);
       return;
     }
     if (id) fetchAll(id);

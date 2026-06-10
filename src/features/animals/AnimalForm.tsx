@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { Save, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ImageUpload from '../../components/common/ImageUpload';
+import { toast } from 'sonner';
 
 const AnimalForm: React.FC = () => {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ const AnimalForm: React.FC = () => {
       setPhotoUrl(photoRes.data?.[0]?.arquivo_url || null);
     } catch (err: any) {
       console.error(err);
-      alert('Erro ao carregar animal: ' + err.message);
+      toast.error('Erro ao carregar animal: ' + err.message);
     } finally {
       setLoadingData(false);
     }
@@ -127,7 +128,7 @@ const AnimalForm: React.FC = () => {
         const { data: farms } = await supabase.from('farm').select('id').limit(1);
         const farmId = farms?.[0]?.id;
         if (!farmId) {
-          alert('Nenhuma fazenda encontrada. Execute o init_db.sql no banco de dados.');
+          toast.error('Nenhuma fazenda encontrada. Execute o init_db.sql no banco de dados.');
           return;
         }
         const { data: inserted, error } = await supabase
@@ -142,11 +143,11 @@ const AnimalForm: React.FC = () => {
       await syncRelations(animalId);
       await syncPhoto(animalId);
 
-      alert(isEdit ? 'Animal atualizado com sucesso!' : 'Animal salvo com sucesso!');
+      toast.success(isEdit ? 'Animal atualizado com sucesso!' : 'Animal salvo com sucesso!');
       navigate(`/animais/${animalId}`);
     } catch (err: any) {
       console.error(err);
-      alert('Erro ao salvar: ' + err.message);
+      toast.error('Erro ao salvar: ' + err.message);
     } finally {
       setLoading(false);
     }
