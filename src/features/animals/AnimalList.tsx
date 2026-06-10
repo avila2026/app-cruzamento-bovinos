@@ -15,7 +15,7 @@ const AnimalList: React.FC<{ defaultFilter?: 'M' | 'F' }> = ({ defaultFilter }) 
   const fetchAnimals = async () => {
     try {
       setLoading(true);
-      let query = supabase.from('animal').select('*').order('nome_exibicao');
+      let query = supabase.from('animal').select('*').neq('is_observed', true).order('nome_exibicao');
       
       if (defaultFilter) {
         query = query.eq('sexo', defaultFilter);

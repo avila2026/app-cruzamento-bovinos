@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { streamChat as streamOllamaChat, type ChatMessage } from '../services/ollamaClient';
 import { askAssistant } from '../services/supabaseAiClient';
 
@@ -22,31 +22,35 @@ const SYSTEM_PROMPT: Message = {
 export function useChat(
   initialMessages: Message[] = [],
   onMessagesChange?: (messages: Message[]) => void,
-  animalId?: string
+  animalId?: string,
+  sessionId?: string
 ) {
   const [messages, setMessagesState] = useState<Message[]>(initialMessages);
+  const [prevSessionId, setPrevSessionId] = useState<string | undefined>(sessionId);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // Backends
-  const [provider, setProvider] = useState<ProviderType>('supabase');
+  const [provider, setProviderState] = useState<ProviderType>('supabase');
   const [model, setModel] = useState<string>('claude-3-5-sonnet-20241022');
+  const [thinkLevel, setThinkLevel] = useState<string>('medium');
   
   const abortRef = useRef<AbortController | null>(null);
 
-  // Sync state when initialMessages change (e.g. switching sessions)
-  useEffect(() => {
+  // Sync state when session changes
+  if (sessionId !== prevSessionId) {
+    setPrevSessionId(sessionId);
     setMessagesState(initialMessages);
-  }, [initialMessages]);
+  }
 
-  // Se o provedor mudar para Ollama, muda o modelo padrão do Ollama, senão Claude
-  useEffect(() => {
-    if (provider === 'ollama') {
+  const setProvider = useCallback((newProvider: ProviderType) => {
+    setProviderState(newProvider);
+    if (newProvider === 'ollama') {
       setModel('gpt-oss:120b-cloud');
     } else {
       setModel('claude-3-5-sonnet-20241022');
     }
-  }, [provider]);
+  }, []);
 
   const setMessages = useCallback(
     (updater: Message[] | ((prev: Message[]) => Message[])) => {
@@ -76,9 +80,17 @@ export function useChat(
 
       try {
         if (provider === 'ollama') {
+          let thinkParam: boolean | 'low' | 'medium' | 'high' = 'medium';
+          if (thinkLevel === 'false') thinkParam = false;
+          else if (thinkLevel === 'true') thinkParam = true;
+          else if (thinkLevel === 'low' || thinkLevel === 'medium' || thinkLevel === 'high') {
+            thinkParam = thinkLevel as 'low' | 'medium' | 'high';
+          }
+
           // Ollama usa streaming e o prompt de sistema local
           await streamOllamaChat([SYSTEM_PROMPT, ...history], {
             model: model,
+            think: thinkParam,
             signal: controller.signal,
             onDelta: ({ content, thinking }) => {
               setMessages((prev) => {
@@ -115,9 +127,13 @@ export function useChat(
             return next;
           });
         }
-      } catch (err: any) {
-        if (err?.name === 'AbortError') return;
-        setError(err?.message || 'Falha ao obter resposta do assistente.');
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          if (err.name === 'AbortError') return;
+          setError(err.message);
+        } else {
+          setError('Falha ao obter resposta do assistente.');
+        }
         setMessages((prev) => {
           const next = [...prev];
           const last = next[next.length - 1];
@@ -131,7 +147,7 @@ export function useChat(
         abortRef.current = null;
       }
     },
-    [messages, isLoading, setMessages, provider, model, animalId]
+    [messages, isLoading, setMessages, provider, model, thinkLevel, animalId]
   );
 
   const stop = useCallback(() => {
@@ -156,6 +172,8 @@ export function useChat(
     provider, 
     setProvider, 
     model, 
-    setModel 
+    setModel,
+    thinkLevel,
+    setThinkLevel
   };
 }

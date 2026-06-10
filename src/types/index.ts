@@ -34,6 +34,7 @@ export interface Animal {
   categoria_reprodutiva?: string;
   genotipado: boolean;
   consanguinidade_pct?: number;
+  is_observed?: boolean;
   observacoes?: string;
   created_at?: string;
 }

@@ -36,13 +36,17 @@ const Assistant: React.FC = () => {
     setProvider,
     model,
     setModel,
+    thinkLevel,
+    setThinkLevel,
   } = useChat(
     activeSession?.messages || [],
     (newMessages) => {
       if (activeSessionId) {
         updateSessionMessages(activeSessionId, newMessages);
       }
-    }
+    },
+    undefined,
+    activeSessionId || undefined
   );
 
   const [input, setInput] = useState('');
@@ -184,6 +188,7 @@ const Assistant: React.FC = () => {
                   value={provider}
                   onChange={(e) => setProvider(e.target.value as any)}
                   className="bg-neutral-800 text-neutral-200 border border-neutral-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium cursor-pointer"
+                  title="Conexão"
                 >
                   <option value="supabase">Supabase (Nuvem)</option>
                   <option value="ollama">Ollama (Local)</option>
@@ -195,6 +200,7 @@ const Assistant: React.FC = () => {
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
                   className="bg-neutral-800 text-neutral-200 border border-neutral-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono cursor-pointer"
+                  title="Modelo"
                 >
                   {provider === 'supabase' ? (
                     <>
@@ -212,6 +218,22 @@ const Assistant: React.FC = () => {
                   )}
                 </select>
               </div>
+              {provider === 'ollama' && (
+                <div className="flex items-center gap-1.5 text-xs text-neutral-400">
+                  <span>Pensamento:</span>
+                  <select
+                    value={thinkLevel}
+                    onChange={(e) => setThinkLevel(e.target.value)}
+                    className="bg-neutral-800 text-neutral-200 border border-neutral-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium cursor-pointer"
+                    title="Nível de pensamento"
+                  >
+                    <option value="false">Desativado</option>
+                    <option value="low">Baixo (Low)</option>
+                    <option value="medium">Médio (Medium)</option>
+                    <option value="high">Alto (High)</option>
+                  </select>
+                </div>
+              )}
             </div>
           </div>
           {messages.length > 0 && (
@@ -233,7 +255,7 @@ const Assistant: React.FC = () => {
         >
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center text-neutral-500 gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <div className="w-14 h-14 rounded-2xl bg-linear-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
                 <Bot className="text-neutral-950" size={28} />
               </div>
               <p className="max-w-md">
@@ -335,12 +357,14 @@ const Assistant: React.FC = () => {
               onChange={handleFileUpload}
               className="hidden"
               accept=".txt,.csv,.json,.md,.xml"
+              title="Selecionar arquivo para upload"
             />
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Pergunte ao assistente ou anexe um arquivo..."
               className="flex-1 bg-transparent px-2 py-3 text-gray-200 focus:outline-none"
+              title="Mensagem de entrada"
             />
           </div>
           {isLoading ? (

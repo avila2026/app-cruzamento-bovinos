@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Beef, Dna, Settings, FileText, Bot, X } from 'lucide-react';
+import { LayoutDashboard, Beef, Dna, Settings, FileText, Bot, X, Eye, FileSpreadsheet } from 'lucide-react';
 
 interface SidebarProps {
   open?: boolean;
@@ -11,6 +11,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
   const links = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
     { name: 'Animais', path: '/animais', icon: <Beef size={20} /> },
+    { name: 'Em Observação', path: '/observacao', icon: <Eye size={20} /> },
+    { name: 'Importar Catálogo', path: '/importar-catalogo', icon: <FileSpreadsheet size={20} /> },
     { name: 'Assistente IA', path: '/assistente', icon: <Bot size={20} /> },
     { name: 'Cruzamentos', path: '/simulador', icon: <Dna size={20} /> },
     { name: 'Relatórios', path: '/relatorios', icon: <FileText size={20} /> },

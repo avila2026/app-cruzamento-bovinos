@@ -16,6 +16,7 @@ export const DEFAULT_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gpt-oss:120b-
 
 interface StreamOptions {
   model?: string;
+  think?: boolean | 'low' | 'medium' | 'high';
   signal?: AbortSignal;
   /** Chamado a cada pedaço de texto ou pensamento recebido do modelo. */
   onDelta: (delta: { content?: string; thinking?: string }) => void;
@@ -39,6 +40,7 @@ export async function streamChat(messages: ChatMessage[], opts: StreamOptions): 
         ...(thinking ? { thinking } : {})
       })),
       stream: true,
+      ...(opts.think !== undefined ? { think: opts.think } : {}),
     }),
   });
 
