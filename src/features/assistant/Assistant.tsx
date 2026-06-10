@@ -25,7 +25,18 @@ const Assistant: React.FC = () => {
   } = useChatHistory();
 
   // Initialize with the active session's messages, if any
-  const { messages, isLoading, error, send, stop, clear } = useChat(
+  const {
+    messages,
+    isLoading,
+    error,
+    send,
+    stop,
+    clear,
+    provider,
+    setProvider,
+    model,
+    setModel,
+  } = useChat(
     activeSession?.messages || [],
     (newMessages) => {
       if (activeSessionId) {
@@ -166,9 +177,42 @@ const Assistant: React.FC = () => {
         <div className="flex items-center justify-between mb-4 shrink-0">
           <div>
             <h1 className="text-3xl font-bold text-gray-100">Assistente Genético</h1>
-            <p className="text-sm text-neutral-500">
-              Modelo: <span className="font-mono text-neutral-400">Claude 3.5 Sonnet (Edge)</span>
-            </p>
+            <div className="flex items-center gap-4 mt-1">
+              <div className="flex items-center gap-1.5 text-xs text-neutral-400">
+                <span>Conexão:</span>
+                <select
+                  value={provider}
+                  onChange={(e) => setProvider(e.target.value as any)}
+                  className="bg-neutral-800 text-neutral-200 border border-neutral-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium cursor-pointer"
+                >
+                  <option value="supabase">Supabase (Nuvem)</option>
+                  <option value="ollama">Ollama (Local)</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-neutral-400">
+                <span>Modelo:</span>
+                <select
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  className="bg-neutral-800 text-neutral-200 border border-neutral-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono cursor-pointer"
+                >
+                  {provider === 'supabase' ? (
+                    <>
+                      <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                      <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</option>
+                      <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="gpt-oss:120b-cloud">gpt-oss:120b-cloud</option>
+                      <option value="llama3">llama3</option>
+                      <option value="qwen2.5">qwen2.5</option>
+                      <option value="deepseek-coder">deepseek-coder</option>
+                    </>
+                  )}
+                </select>
+              </div>
+            </div>
           </div>
           {messages.length > 0 && (
             <button

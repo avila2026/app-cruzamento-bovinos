@@ -12,9 +12,12 @@ serve(async (req: Request) => {
    return new Response("ok", { headers: corsHeaders });
  }
  try {
-   const { question, animal_id } = await req.json();
+   const { question, animal_id, model } = await req.json();
    if (!question || typeof question !== "string") {
      return json({ error: "Campo 'question' é obrigatório." }, 400);
+   }
+   if (model && model !== "claude-3-5-sonnet-20241022" && model !== "claude-3-5-haiku-20241022") {
+     return json({ error: "Modelo inválido." }, 400);
    }
    
    const supabase = createClient(
@@ -59,7 +62,7 @@ serve(async (req: Request) => {
      .join("\n\n---\n\n");
      
    // 5. Chama Claude API
-   const answer = await askClaude(question, context, animalContext);
+   const answer = await askClaude(question, context, animalContext, model);
    
    return json({
      answer,
@@ -94,7 +97,7 @@ async function embed(input: string, inputType: "query" | "document"): Promise<nu
  return data.data[0].embedding;
 }
 
-async function askClaude(question: string, context: string, animalContext: string): Promise<string> {
+async function askClaude(question: string, context: string, animalContext: string, model = "claude-3-5-sonnet-20241022"): Promise<string> {
  const res = await fetch("https://api.anthropic.com/v1/messages", {
    method: "POST",
    headers: {
@@ -103,7 +106,7 @@ async function askClaude(question: string, context: string, animalContext: strin
      "Content-Type": "application/json",
    },
    body: JSON.stringify({
-     model: "claude-3-5-sonnet-20241022",
+     model: model,
      max_tokens: 1024,
      system:
        "Você é um especialista em genética bovina zebuína, com profundo conhecimento " +

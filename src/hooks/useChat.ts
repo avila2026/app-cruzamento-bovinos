@@ -1,15 +1,23 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
+import { streamChat as streamOllamaChat, type ChatMessage } from '../services/ollamaClient';
 import { askAssistant } from '../services/supabaseAiClient';
 
-export type ChatRole = 'system' | 'user' | 'assistant';
-
-export interface ChatMessage {
-  role: ChatRole;
-  content: string;
-  thinking?: string;
-}
-
 export type Message = ChatMessage;
+export type ProviderType = 'supabase' | 'ollama';
+
+// Contexto do domínio: o assistente é um zootecnista virtual do CattleGen.
+const SYSTEM_PROMPT: Message = {
+  role: 'system',
+  content: [
+    'Você é o assistente de melhoramento genético do CattleGen, um aplicativo de gestão',
+    'de cruzamento de bovinos de corte (foco em Nelore e raças zebuínas no Brasil).',
+    'Ajude o pecuarista a: interpretar DEPs e índices (Geneplus, PMGZ, ANCP),',
+    'comparar touros e matrizes, sugerir acasalamentos dirigidos segundo o objetivo',
+    '(novilhas precoces, reposição, terminal), e explicar conceitos de genética de forma',
+    'simples e prática. Responda sempre em português do Brasil, de forma objetiva.',
+    'Quando faltar dado, diga qual informação é necessária. Não invente números de DEP.',
+  ].join(' '),
+};
 
 export function useChat(
   initialMessages: Message[] = [],
@@ -19,11 +27,26 @@ export function useChat(
   const [messages, setMessagesState] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Backends
+  const [provider, setProvider] = useState<ProviderType>('supabase');
+  const [model, setModel] = useState<string>('claude-3-5-sonnet-20241022');
+  
+  const abortRef = useRef<AbortController | null>(null);
 
   // Sync state when initialMessages change (e.g. switching sessions)
   useEffect(() => {
     setMessagesState(initialMessages);
   }, [initialMessages]);
+
+  // Se o provedor mudar para Ollama, muda o modelo padrão do Ollama, senão Claude
+  useEffect(() => {
+    if (provider === 'ollama') {
+      setModel('gpt-oss:120b-cloud');
+    } else {
+      setModel('claude-3-5-sonnet-20241022');
+    }
+  }, [provider]);
 
   const setMessages = useCallback(
     (updater: Message[] | ((prev: Message[]) => Message[])) => {
@@ -45,52 +68,94 @@ export function useChat(
       const userMsg: Message = { role: 'user', content: text };
       const history = [...messages, userMsg];
       
-      // Adiciona a mensagem do usuário e um placeholder vazio para o assistente
-      // para que a UI mostre o indicador de carregamento
-      setMessages([...history, { role: 'assistant', content: '' }]);
+      setMessages([...history, { role: 'assistant', content: '', thinking: '' }]);
       setIsLoading(true);
 
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       try {
-        const res = await askAssistant(text, animalId);
-        
-        setMessages((prev) => {
-          const next = [...prev];
-          const last = next[next.length - 1];
-          if (last?.role === 'assistant') {
-            let sourcesText = '';
-            if (res.sources && res.sources.length > 0) {
-              sourcesText = '\n\n**Fontes:**\n' + res.sources.map(s => `- [${s.title || 'Link'}](${s.url || '#'})`).join('\n');
+        if (provider === 'ollama') {
+          // Ollama usa streaming e o prompt de sistema local
+          await streamOllamaChat([SYSTEM_PROMPT, ...history], {
+            model: model,
+            signal: controller.signal,
+            onDelta: ({ content, thinking }) => {
+              setMessages((prev) => {
+                const next = [...prev];
+                const last = next[next.length - 1];
+                if (last?.role === 'assistant') {
+                  next[next.length - 1] = {
+                    ...last,
+                    content: last.content + (content || ''),
+                    thinking: (last.thinking || '') + (thinking || ''),
+                  };
+                }
+                return next;
+              });
+            },
+          });
+        } else {
+          // Supabase usa requisição HTTP padrão (não-streaming)
+          const res = await askAssistant(text, animalId, model);
+          
+          setMessages((prev) => {
+            const next = [...prev];
+            const last = next[next.length - 1];
+            if (last?.role === 'assistant') {
+              let sourcesText = '';
+              if (res.sources && res.sources.length > 0) {
+                sourcesText = '\n\n**Fontes:**\n' + res.sources.map(s => `- [${s.title || 'Link'}](${s.url || '#'})`).join('\n');
+              }
+              next[next.length - 1] = {
+                role: 'assistant',
+                content: res.answer + sourcesText,
+              };
             }
-            next[next.length - 1] = {
-              role: 'assistant',
-              content: res.answer + sourcesText,
-            };
-          }
-          return next;
-        });
+            return next;
+          });
+        }
       } catch (err: any) {
+        if (err?.name === 'AbortError') return;
         setError(err?.message || 'Falha ao obter resposta do assistente.');
-        // Remove o placeholder vazio em caso de erro
         setMessages((prev) => {
           const next = [...prev];
           const last = next[next.length - 1];
-          if (last?.role === 'assistant' && last.content === '') {
+          if (last?.role === 'assistant' && last.content === '' && (!last.thinking || last.thinking === '')) {
             next.pop();
           }
           return next;
         });
       } finally {
         setIsLoading(false);
+        abortRef.current = null;
       }
     },
-    [messages, isLoading, setMessages, animalId]
+    [messages, isLoading, setMessages, provider, model, animalId]
   );
 
-  const stop = useCallback(() => {}, []); // Sem streaming, parar é um noop
+  const stop = useCallback(() => {
+    if (provider === 'ollama') {
+      abortRef.current?.abort();
+    }
+  }, [provider]);
+
   const clear = useCallback(() => {
     setMessages([]);
     setError(null);
   }, [setMessages]);
 
-  return { messages, isLoading, error, send, stop, clear, setMessages };
+  return { 
+    messages, 
+    isLoading, 
+    error, 
+    send, 
+    stop, 
+    clear, 
+    setMessages, 
+    provider, 
+    setProvider, 
+    model, 
+    setModel 
+  };
 }

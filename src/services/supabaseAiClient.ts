@@ -12,10 +12,11 @@ export interface AiResponse {
 
 export async function askAssistant(
   question: string,
-  animalId?: string
+  animalId?: string,
+  model?: string
 ): Promise<AiResponse> {
   const { data, error } = await supabase.functions.invoke("ai-assistant", {
-    body: { question, animal_id: animalId },
+    body: { question, animal_id: animalId, model },
   });
   if (error) throw new Error(`Assistente indisponível: ${error.message}`);
   return data as AiResponse;
