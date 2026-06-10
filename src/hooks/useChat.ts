@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { streamChat, type ChatMessage } from '../services/ollamaClient';
 
 export type Message = ChatMessage;
@@ -17,11 +17,31 @@ const SYSTEM_PROMPT: Message = {
   ].join(' '),
 };
 
-export function useChat() {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function useChat(
+  initialMessages: Message[] = [],
+  onMessagesChange?: (messages: Message[]) => void
+) {
+  const [messages, setMessagesState] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Sync state when initialMessages change (e.g. switching sessions)
+  useEffect(() => {
+    setMessagesState(initialMessages);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialMessages]);
+
+  const setMessages = useCallback(
+    (updater: Message[] | ((prev: Message[]) => Message[])) => {
+      setMessagesState((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        onMessagesChange?.(next);
+        return next;
+      });
+    },
+    [onMessagesChange]
+  );
 
   const send = useCallback(
     async (userInput: string) => {
@@ -68,14 +88,14 @@ export function useChat() {
         abortRef.current = null;
       }
     },
-    [messages, isLoading]
+    [messages, isLoading, setMessages]
   );
 
   const stop = useCallback(() => abortRef.current?.abort(), []);
   const clear = useCallback(() => {
     setMessages([]);
     setError(null);
-  }, []);
+  }, [setMessages]);
 
-  return { messages, isLoading, error, send, stop, clear };
+  return { messages, isLoading, error, send, stop, clear, setMessages };
 }
