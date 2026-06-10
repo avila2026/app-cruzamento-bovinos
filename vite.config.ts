@@ -8,4 +8,15 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      // Encaminha as chamadas do assistente para o daemon local do Ollama,
+      // evitando CORS. O cliente usa o caminho relativo "/ollama/v1/...".
+      '/ollama': {
+        target: 'http://localhost:11434',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ollama/, ''),
+      },
+    },
+  },
 })

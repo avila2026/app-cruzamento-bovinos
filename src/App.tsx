@@ -4,6 +4,7 @@ import AnimalList from './features/animals/AnimalList';
 import AnimalForm from './features/animals/AnimalForm';
 import AnimalDetails from './features/animals/AnimalDetails';
 import EvaluationForm from './features/evaluations/EvaluationForm';
+import Assistant from './features/assistant/Assistant';
 
 // Placeholder components
 const Dashboard = () => <div className="p-4"><h1 className="text-3xl font-bold mb-4">Dashboard</h1><p className="text-neutral-400">Bem-vindo ao sistema de cruzamentos CattleGen.</p></div>;
@@ -23,6 +24,7 @@ function App() {
           <Route path="animais/:id" element={<AnimalDetails />} />
           <Route path="animais/:id/avaliacao/nova" element={<EvaluationForm />} />
           <Route path="animais/:id/avaliacao/:evalId/editar" element={<EvaluationForm />} />
+          <Route path="assistente" element={<Assistant />} />
           <Route path="simulador" element={<Simulador />} />
           <Route path="relatorios" element={<Relatorios />} />
           <Route path="config" element={<Config />} />

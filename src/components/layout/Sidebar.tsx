@@ -1,18 +1,28 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Beef, Dna, Settings, FileText } from 'lucide-react';
+import { LayoutDashboard, Beef, Dna, Settings, FileText, Bot, X } from 'lucide-react';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  open?: boolean;
+  onClose?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
   const links = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
     { name: 'Animais', path: '/animais', icon: <Beef size={20} /> },
+    { name: 'Assistente IA', path: '/assistente', icon: <Bot size={20} /> },
     { name: 'Cruzamentos', path: '/simulador', icon: <Dna size={20} /> },
     { name: 'Relatórios', path: '/relatorios', icon: <FileText size={20} /> },
     { name: 'Configurações', path: '/config', icon: <Settings size={20} /> },
   ];
 
   return (
-    <aside className="w-64 bg-neutral-950/80 backdrop-blur-md border-r border-neutral-800 flex flex-col transition-all duration-300">
+    <aside
+      className={`w-64 bg-neutral-950/95 md:bg-neutral-950/80 backdrop-blur-md border-r border-neutral-800 flex flex-col transition-transform duration-300 z-40
+        fixed inset-y-0 left-0 md:static
+        ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}
+    >
       <div className="p-6 flex items-center space-x-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
           <Dna className="text-neutral-950" size={24} strokeWidth={2.5} />
@@ -20,6 +30,14 @@ const Sidebar: React.FC = () => {
         <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-400">
           CattleGen
         </h1>
+        <button
+          type="button"
+          onClick={onClose}
+          className="md:hidden ml-auto text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-neutral-800"
+          aria-label="Fechar menu"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       <nav className="flex-1 px-4 py-6 space-y-2">
@@ -27,6 +45,7 @@ const Sidebar: React.FC = () => {
           <NavLink
             key={link.name}
             to={link.path}
+            onClick={onClose}
             className={({ isActive }) =>
               `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                 isActive

@@ -1,0 +1,72 @@
+// Cliente leve para o endpoint OpenAI-compatível do Ollama.
+// Usa fetch nativo com streaming (SSE), sem SDK e sem chave no front:
+// o app fala apenas com o daemon local (via proxy /ollama), que cuida da
+// autenticação para modelos *-cloud usando o login do Ollama.
+
+export type ChatRole = 'system' | 'user' | 'assistant';
+
+export interface ChatMessage {
+  role: ChatRole;
+  content: string;
+}
+
+const BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || '/ollama/v1';
+export const DEFAULT_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'gpt-oss:120b-cloud';
+
+interface StreamOptions {
+  model?: string;
+  signal?: AbortSignal;
+  /** Chamado a cada pedaço de texto recebido do modelo. */
+  onDelta: (textChunk: string) => void;
+}
+
+/**
+ * Envia o histórico de mensagens e transmite a resposta do modelo em tempo real.
+ * Resolve quando o streaming termina; lança em caso de erro de rede/HTTP.
+ */
+export async function streamChat(messages: ChatMessage[], opts: StreamOptions): Promise<void> {
+  const res = await fetch(`${BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal: opts.signal,
+    body: JSON.stringify({
+      model: opts.model || DEFAULT_MODEL,
+      messages,
+      stream: true,
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`Ollama respondeu ${res.status}. ${detail || 'Verifique se o daemon está ativo (ollama serve).'}`);
+  }
+  if (!res.body) throw new Error('Resposta sem corpo (streaming indisponível).');
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    // SSE: eventos separados por linha, prefixados com "data: ".
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('data:')) continue;
+      const payload = trimmed.slice(5).trim();
+      if (payload === '[DONE]') return;
+      try {
+        const json = JSON.parse(payload);
+        const delta: string | undefined = json.choices?.[0]?.delta?.content;
+        if (delta) opts.onDelta(delta);
+      } catch {
+        // Linha parcial/keep-alive — ignora.
+      }
+    }
+  }
+}
