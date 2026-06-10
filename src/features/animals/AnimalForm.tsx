@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Animal, SexoAnimal } from '../../types';
+import { supabase } from '../../lib/supabase';
 import { Save, ArrowLeft, ImagePlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,8 +22,37 @@ const AnimalForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // To be implemented: API call to Supabase to insert/update the animal
-    console.log('Submitting:', formData);
+    try {
+      setLoading(true);
+      // Pega a primeira fazenda cadastrada (A Fazenda Modelo que criamos no SQL)
+      const { data: farms } = await supabase.from('farm').select('id').limit(1);
+      const farmId = farms?.[0]?.id;
+
+      if (!farmId) {
+        alert("Nenhuma fazenda encontrada. Execute o init_db.sql no banco de dados.");
+        return;
+      }
+
+      const { error } = await supabase.from('animal').insert([
+        {
+          ...formData,
+          farm_id: farmId,
+          data_nascimento: formData.data_nascimento || new Date().toISOString().split('T')[0],
+          raca: formData.raca || 'Nelore',
+          categoria_registral: formData.categoria_registral || 'PO',
+          registro_composto: formData.registro_composto || '',
+        }
+      ]);
+
+      if (error) throw error;
+      alert('Animal salvo com sucesso!');
+      navigate('/animais');
+    } catch (err: any) {
+      console.error(err);
+      alert('Erro ao salvar: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

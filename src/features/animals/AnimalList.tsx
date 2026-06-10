@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Animal } from '../../types';
 import { Plus, Search, Filter } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const AnimalList: React.FC<{ defaultFilter?: 'M' | 'F' }> = ({ defaultFilter }) => {
   const [animals, setAnimals] = useState<Animal[]>([]);
@@ -37,10 +38,10 @@ const AnimalList: React.FC<{ defaultFilter?: 'M' | 'F' }> = ({ defaultFilter }) 
         <h1 className="text-3xl font-bold text-gray-100">
           {defaultFilter === 'M' ? 'Touros' : defaultFilter === 'F' ? 'Fêmeas' : 'Animais'}
         </h1>
-        <button className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg transition-colors shadow-lg shadow-emerald-900/20">
+        <Link to="/animais/novo" className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg transition-colors shadow-lg shadow-emerald-900/20">
           <Plus size={20} />
           <span>Novo Cadastro</span>
-        </button>
+        </Link>
       </div>
 
       <div className="flex space-x-4 mb-6">
