@@ -1,8 +1,9 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import AnimalList from './features/animals/AnimalList';
 import AnimalForm from './features/animals/AnimalForm';
+import AnimalDetails from './features/animals/AnimalDetails';
+import EvaluationForm from './features/evaluations/EvaluationForm';
 
 // Placeholder components
 const Dashboard = () => <div className="p-4"><h1 className="text-3xl font-bold mb-4">Dashboard</h1><p className="text-neutral-400">Bem-vindo ao sistema de cruzamentos CattleGen.</p></div>;
@@ -18,6 +19,10 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="animais" element={<AnimalList />} />
           <Route path="animais/novo" element={<AnimalForm />} />
+          <Route path="animais/:id/editar" element={<AnimalForm />} />
+          <Route path="animais/:id" element={<AnimalDetails />} />
+          <Route path="animais/:id/avaliacao/nova" element={<EvaluationForm />} />
+          <Route path="animais/:id/avaliacao/:evalId/editar" element={<EvaluationForm />} />
           <Route path="simulador" element={<Simulador />} />
           <Route path="relatorios" element={<Relatorios />} />
           <Route path="config" element={<Config />} />

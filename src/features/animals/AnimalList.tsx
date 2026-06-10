@@ -86,7 +86,7 @@ const AnimalList: React.FC<{ defaultFilter?: 'M' | 'F' }> = ({ defaultFilter }) 
                   <td className="px-6 py-4">{animal.raca} {animal.categoria_registral}</td>
                   <td className="px-6 py-4">{new Date(animal.data_nascimento).toLocaleDateString()}</td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-emerald-400 hover:text-emerald-300 font-medium">Ver Ficha</button>
+                    <Link to={`/animais/${animal.id}`} className="text-emerald-400 hover:text-emerald-300 font-medium">Ver Ficha</Link>
                   </td>
                 </tr>
               ))}
