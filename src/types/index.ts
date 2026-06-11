@@ -98,3 +98,35 @@ export interface FileAsset {
   origem?: string;
   created_at?: string;
 }
+
+export interface Mating {
+  id: string;
+  farm_id: string;
+  sire_id: string;
+  dam_id: string;
+  programa_base: ProgramaAvaliacao;
+  objetivo: string;
+  score_composto?: number;
+  confianca?: number;
+  alertas?: unknown;
+  created_at?: string;
+}
+
+export interface MatingTraitResult {
+  id: string;
+  mating_id: string;
+  trait_code?: string;
+  sire_value?: number;
+  dam_value?: number;
+  expected_value?: number;
+  normalized_score?: number;
+  weight?: number;
+}
+
+export interface Report {
+  id: string;
+  mating_id?: string;
+  formato?: string;
+  arquivo_url?: string;
+  gerado_em?: string;
+}

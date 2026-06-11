@@ -8,12 +8,11 @@ import EvaluationForm from './features/evaluations/EvaluationForm';
 import Assistant from './features/assistant/Assistant';
 import ImportCatalog from './features/animals/ImportCatalog';
 import ObservationList from './features/animals/ObservationList';
+import Simulator from './features/simulator/Simulator';
+import Dashboard from './pages/Dashboard';
+import Reports from './pages/Reports';
+import Config from './pages/Config';
 
-// Placeholder components
-const Dashboard = () => <div className="p-4"><h1 className="text-3xl font-bold mb-4">Dashboard</h1><p className="text-neutral-400">Bem-vindo ao sistema de cruzamentos CattleGen.</p></div>;
-const Simulador = () => <div className="p-4"><h1 className="text-3xl font-bold mb-4">Simulador</h1><p className="text-neutral-400">Simulação de cruzamentos e acasalamento dirigido.</p></div>;
-const Relatorios = () => <div className="p-4"><h1 className="text-3xl font-bold mb-4">Relatórios</h1><p className="text-neutral-400">Histórico e emissão de PDFs.</p></div>;
-const Config = () => <div className="p-4"><h1 className="text-3xl font-bold mb-4">Configurações</h1><p className="text-neutral-400">Ajustes da fazenda e perfil.</p></div>;
 
 function App() {
   return (
@@ -32,8 +31,8 @@ function App() {
             <Route path="observacao" element={<ObservationList />} />
             <Route path="importar-catalogo" element={<ImportCatalog />} />
             <Route path="assistente" element={<Assistant />} />
-            <Route path="simulador" element={<Simulador />} />
-            <Route path="relatorios" element={<Relatorios />} />
+            <Route path="simulador" element={<Simulator />} />
+            <Route path="relatorios" element={<Reports />} />
             <Route path="config" element={<Config />} />
           </Route>
         </Routes>
