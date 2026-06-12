@@ -58,12 +58,17 @@ export function useChat(
   );
 
   const send = useCallback(
-    async (userInput: string) => {
+    async (userInput: string, images?: string[]) => {
       const text = userInput.trim();
-      if (!text || isLoading) return;
+      const hasImages = images && images.length > 0;
+      if ((!text && !hasImages) || isLoading) return;
 
       setError(null);
-      const userMsg: Message = { role: 'user', content: text };
+      const userMsg: Message = { 
+        role: 'user', 
+        content: text,
+        ...(hasImages ? { images } : {})
+      };
       const history = [...messages, userMsg];
       
       setMessages([...history, { role: 'assistant', content: '', thinking: '' }]);

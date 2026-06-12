@@ -9,6 +9,7 @@ export interface ChatMessage {
   role: ChatRole;
   content: string;
   thinking?: string;
+  images?: string[]; // base64 data URLs
 }
 
 const BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || '/ollama/v1';
@@ -33,12 +34,23 @@ export async function streamChat(messages: ChatMessage[], opts: StreamOptions): 
     signal: opts.signal,
     body: JSON.stringify({
       model: opts.model || DEFAULT_MODEL,
-      messages: messages.map(({ role, content, thinking }) => ({
-        role,
-        content,
-        // include thinking block if it exists to preserve model reasoning history
-        ...(thinking ? { thinking } : {})
-      })),
+      messages: messages.map(({ role, content, thinking, images }) => {
+        const msg: any = { role };
+        if (thinking) msg.thinking = thinking;
+        
+        if (images && images.length > 0) {
+          msg.content = [
+            { type: 'text', text: content },
+            ...images.map(img => ({
+              type: 'image_url',
+              image_url: { url: img }
+            }))
+          ];
+        } else {
+          msg.content = content;
+        }
+        return msg;
+      }),
       stream: true,
       ...(opts.think !== undefined ? { think: opts.think } : {}),
     }),
@@ -82,5 +94,27 @@ export async function streamChat(messages: ChatMessage[], opts: StreamOptions): 
         // Linha parcial/keep-alive — ignora.
       }
     }
+  }
+}
+
+/**
+ * Busca a lista de modelos disponíveis no daemon local do Ollama.
+ */
+export async function fetchOllamaModels(): Promise<string[]> {
+  try {
+    const res = await fetch(`${BASE_URL}/models`);
+    if (!res.ok) throw new Error('Falha ao buscar modelos do Ollama');
+    const data = await res.json();
+    return data.data.map((m: any) => m.id);
+  } catch (err) {
+    console.warn('Erro ao carregar modelos do Ollama, usando fallback:', err);
+    // Lista de fallback contendo os modelos conhecidos do usuário
+    return [
+      DEFAULT_MODEL,
+      'qwen2.5:1.5b',
+      'gemma3:27b-cloud',
+      'kimi-k2.6:cloud',
+      'nemotron-3-nano:30b-cloud'
+    ];
   }
 }

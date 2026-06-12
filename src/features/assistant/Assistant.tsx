@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useChat, type Message } from '../../hooks/useChat';
 import { useChatHistory } from '../../hooks/useChatHistory';
+import { fetchOllamaModels } from '../../services/ollamaClient';
 
-import { Bot, Send, Square, Trash2, User, Copy, Check, Paperclip, MessageSquare, Plus, Archive, ArchiveRestore } from 'lucide-react';
+import { Bot, Send, Square, Trash2, User, Copy, Check, Paperclip, MessageSquare, Plus, Archive, ArchiveRestore, X } from 'lucide-react';
 
 // O Ollama depende de um daemon local (proxy /ollama do Vite em dev). Em
 // produção (Hostinger) só o backend Supabase está disponível, salvo se uma
@@ -62,6 +63,8 @@ const Assistant: React.FC = () => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingImages, setPendingImages] = useState<string[]>([]);
+  const [ollamaModels, setOllamaModels] = useState<string[]>([]);
 
   // When there are no sessions, create one automatically
   useEffect(() => {
@@ -82,10 +85,24 @@ const Assistant: React.FC = () => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
+  // Carrega os modelos do Ollama local dinamicamente
+  useEffect(() => {
+    if (provider === 'ollama') {
+      fetchOllamaModels().then((models) => {
+        setOllamaModels(models);
+        if (models.length > 0 && !models.includes(model)) {
+          setModel(models[0]);
+        }
+      });
+    }
+  }, [provider, model, setModel]);
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    send(input);
+    if (!input.trim() && pendingImages.length === 0) return;
+    send(input, pendingImages);
     setInput('');
+    setPendingImages([]);
   };
 
   const handleCopy = (text: string, index: number) => {
@@ -97,14 +114,24 @@ const Assistant: React.FC = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      const prompt = `Por favor, analise o seguinte arquivo (${file.name}):\n\n${text}`;
-      if (!activeSessionId) createSession(prompt);
-      send(prompt);
-    };
-    reader.readAsText(file);
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64Data = event.target?.result as string;
+        setPendingImages(prev => [...prev, base64Data]);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        const prompt = `Por favor, analise o seguinte arquivo (${file.name}):\n\n${text}`;
+        if (!activeSessionId) createSession(prompt);
+        send(prompt);
+      };
+      reader.readAsText(file);
+    }
     e.target.value = ''; // reset
   };
 
@@ -220,10 +247,17 @@ const Assistant: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <option value="gpt-oss:120b-cloud">gpt-oss:120b-cloud</option>
-                      <option value="llama3">llama3</option>
-                      <option value="qwen2.5">qwen2.5</option>
-                      <option value="deepseek-coder">deepseek-coder</option>
+                      {ollamaModels.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                      {ollamaModels.length === 0 && (
+                        <>
+                          <option value="gpt-oss:120b-cloud">gpt-oss:120b-cloud</option>
+                          <option value="llama3">llama3</option>
+                          <option value="qwen2.5">qwen2.5</option>
+                          <option value="deepseek-coder">deepseek-coder</option>
+                        </>
+                      )}
                     </>
                   )}
                 </select>
@@ -316,6 +350,13 @@ const Assistant: React.FC = () => {
                   </details>
                 )}
 
+                {/* Imagens Anexadas */}
+                {m.images && m.images.map((img, imgIdx) => (
+                  <div key={imgIdx} className="mt-1 mb-2 rounded-lg overflow-hidden border border-neutral-800 max-w-xs">
+                    <img src={img} alt="Imagem anexada" className="w-full h-auto object-cover max-h-60" />
+                  </div>
+                ))}
+
                 {/* Normal Content */}
                 <div className="whitespace-pre-wrap">
                   {m.content || (isLoading && i === messages.length - 1 && !m.thinking ? (
@@ -350,51 +391,72 @@ const Assistant: React.FC = () => {
         )}
 
         {/* Entrada */}
-        <form onSubmit={submit} className="mt-4 flex gap-3 shrink-0">
-          <div className="flex-1 relative flex items-center bg-neutral-900/50 border border-neutral-800 rounded-lg focus-within:ring-2 focus-within:ring-emerald-500/50 transition-all">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="px-4 text-neutral-400 hover:text-emerald-400 transition-colors"
-              title="Anexar arquivo"
-            >
-              <Paperclip size={20} />
-            </button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              className="hidden"
-              accept=".txt,.csv,.json,.md,.xml"
-              title="Selecionar arquivo para upload"
-            />
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Pergunte ao assistente ou anexe um arquivo..."
-              className="flex-1 bg-transparent px-2 py-3 text-gray-200 focus:outline-none"
-              title="Mensagem de entrada"
-            />
-          </div>
-          {isLoading ? (
-            <button
-              type="button"
-              onClick={stop}
-              className="flex items-center space-x-2 bg-neutral-800 hover:bg-neutral-700 text-gray-200 px-5 py-3 rounded-lg transition-colors"
-            >
-              <Square size={18} />
-              <span>Parar</span>
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={!input.trim()}
-              className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800/50 disabled:text-neutral-400 text-white px-5 py-3 rounded-lg transition-all shadow-lg shadow-emerald-900/20"
-            >
-              <Send size={18} />
-              <span>Enviar</span>
-            </button>
+        <form onSubmit={submit} className="mt-4 flex flex-col gap-3 shrink-0">
+          {/* Miniaturas de Imagens Pendentes */}
+          {pendingImages.length > 0 && (
+            <div className="flex flex-wrap gap-2 p-2 bg-neutral-950/40 border border-neutral-800 rounded-lg">
+              {pendingImages.map((img, idx) => (
+                <div key={idx} className="relative w-16 h-16 rounded border border-neutral-700 overflow-hidden group">
+                  <img src={img} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setPendingImages(prev => prev.filter((_, i) => i !== idx))}
+                    className="absolute top-0.5 right-0.5 bg-neutral-900/80 text-neutral-300 hover:text-red-400 p-0.5 rounded-full"
+                    title="Remover imagem"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
+
+          <div className="flex gap-3 w-full">
+            <div className="flex-1 relative flex items-center bg-neutral-900/50 border border-neutral-800 rounded-lg focus-within:ring-2 focus-within:ring-emerald-500/50 transition-all">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 text-neutral-400 hover:text-emerald-400 transition-colors"
+                title="Anexar arquivo"
+              >
+                <Paperclip size={20} />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                className="hidden"
+                accept=".txt,.csv,.json,.md,.xml,image/*"
+                title="Selecionar arquivo para upload"
+              />
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Pergunte ao assistente ou anexe um arquivo/imagem..."
+                className="flex-1 bg-transparent px-2 py-3 text-gray-200 focus:outline-none"
+                title="Mensagem de entrada"
+              />
+            </div>
+            {isLoading ? (
+              <button
+                type="button"
+                onClick={stop}
+                className="flex items-center space-x-2 bg-neutral-800 hover:bg-neutral-700 text-gray-200 px-5 py-3 rounded-lg transition-colors"
+              >
+                <Square size={18} />
+                <span>Parar</span>
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={!input.trim() && pendingImages.length === 0}
+                className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800/50 disabled:text-neutral-400 text-white px-5 py-3 rounded-lg transition-all shadow-lg shadow-emerald-900/20"
+              >
+                <Send size={18} />
+                <span>Enviar</span>
+              </button>
+            )}
+          </div>
         </form>
       </div>
     </div>
