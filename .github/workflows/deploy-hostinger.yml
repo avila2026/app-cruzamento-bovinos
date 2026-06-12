@@ -1,0 +1,45 @@
+name: Deploy Hostinger
+
+# Builda o SPA e publica o conteúdo de dist/ na branch "hostinger-deploy",
+# que o Git deploy do hPanel (Hostinger) consome via webhook.
+on:
+  push:
+    branches: ["main-"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Build de produção
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          # VITE_OLLAMA_BASE_URL não é definido: o provedor Ollama fica oculto.
+
+      - name: Publicar dist/ na branch hostinger-deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: hostinger-deploy
+          publish_dir: ./dist
+          force_orphan: true
+          commit_message: "deploy: build ${{ github.sha }}"
