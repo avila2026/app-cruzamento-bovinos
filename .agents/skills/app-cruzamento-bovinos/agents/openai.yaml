@@ -1,0 +1,6 @@
+interface:
+  display_name: "App Cruzamento Bovinos"
+  short_description: "Repo-specific patterns and workflows for app-cruzamento-bovinos"
+  default_prompt: "Use the app-cruzamento-bovinos repo skill to follow existing architecture, testing, and workflow conventions."
+policy:
+  allow_implicit_invocation: true
