@@ -1,10 +1,11 @@
 # SPA fallback: rotas do React Router (ex.: /reports) devem servir index.html.
+# Sem RewriteBase e com alvo relativo, funciona tanto na raiz do domínio
+# quanto em subdiretórios (o build usa base "./").
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+  RewriteRule . index.html [L]
 </IfModule>
 
 # Assets gerados pelo Vite têm hash no nome — cache longo é seguro.
