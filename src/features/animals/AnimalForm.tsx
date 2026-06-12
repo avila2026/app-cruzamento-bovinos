@@ -201,23 +201,23 @@ function AnimalForm() {
           <h2 className="text-xl font-semibold text-emerald-400 mb-4 border-b border-neutral-800 pb-2">Informações Básicas</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Nome de Exibição *</label>
-              <input required name="nome_exibicao" value={formData.nome_exibicao || ''} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="nome_exibicao" className="block text-sm font-medium text-neutral-400 mb-1">Nome de Exibição *</label>
+              <input id="nome_exibicao" required name="nome_exibicao" value={formData.nome_exibicao || ''} placeholder="Ex: Touro de Ouro" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Sexo *</label>
-              <select name="sexo" value={formData.sexo} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50">
+              <label htmlFor="sexo" className="block text-sm font-medium text-neutral-400 mb-1">Sexo *</label>
+              <select id="sexo" title="Sexo do Animal" name="sexo" value={formData.sexo} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50">
                 <option value="M">Macho (Touro)</option>
                 <option value="F">Fêmea (Matriz/Novilha)</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Data de Nascimento *</label>
-              <input required type="date" name="data_nascimento" value={formData.data_nascimento || ''} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="data_nascimento" className="block text-sm font-medium text-neutral-400 mb-1">Data de Nascimento *</label>
+              <input id="data_nascimento" required type="date" name="data_nascimento" value={formData.data_nascimento || ''} title="Data de Nascimento" placeholder="Selecione a data" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Status</label>
-              <select name="status" value={formData.status} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50">
+              <label htmlFor="status" className="block text-sm font-medium text-neutral-400 mb-1">Status</label>
+              <select id="status" title="Status do Animal" name="status" value={formData.status} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50">
                 <option value="ativo">Ativo</option>
                 <option value="vendido">Vendido</option>
                 <option value="morto">Morto</option>
@@ -232,28 +232,28 @@ function AnimalForm() {
           <h2 className="text-xl font-semibold text-emerald-400 mb-4 border-b border-neutral-800 pb-2">Registro Genealógico</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Raça *</label>
-              <input required name="raca" value={formData.raca} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="raca" className="block text-sm font-medium text-neutral-400 mb-1">Raça *</label>
+              <input id="raca" required name="raca" value={formData.raca} placeholder="Ex: Nelore" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Categoria Registral *</label>
-              <input required name="categoria_registral" value={formData.categoria_registral || ''} placeholder="Ex: PO, LA..." onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="categoria_registral" className="block text-sm font-medium text-neutral-400 mb-1">Categoria Registral *</label>
+              <input id="categoria_registral" required name="categoria_registral" value={formData.categoria_registral || ''} placeholder="Ex: PO, LA..." onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Registro Único / Composto *</label>
-              <input required name="registro_composto" value={formData.registro_composto || ''} placeholder="Ex: GRIB9435" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="registro_composto" className="block text-sm font-medium text-neutral-400 mb-1">Registro Único / Composto *</label>
+              <input id="registro_composto" required name="registro_composto" value={formData.registro_composto || ''} placeholder="Ex: GRIB9435" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Série</label>
-              <input name="serie_registro" value={formData.serie_registro || ''} placeholder="Ex: GRI" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="serie_registro" className="block text-sm font-medium text-neutral-400 mb-1">Série</label>
+              <input id="serie_registro" name="serie_registro" value={formData.serie_registro || ''} placeholder="Ex: GRI" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">RGN</label>
-              <input name="rgn" value={formData.rgn || ''} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="rgn" className="block text-sm font-medium text-neutral-400 mb-1">RGN</label>
+              <input id="rgn" name="rgn" value={formData.rgn || ''} placeholder="RGN" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">RGD</label>
-              <input name="rgd" value={formData.rgd || ''} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="rgd" className="block text-sm font-medium text-neutral-400 mb-1">RGD</label>
+              <input id="rgd" name="rgd" value={formData.rgd || ''} placeholder="RGD" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
           </div>
         </section>
@@ -263,35 +263,35 @@ function AnimalForm() {
           <h2 className="text-xl font-semibold text-emerald-400 mb-4 border-b border-neutral-800 pb-2">Origem e Genética</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Criador</label>
-              <input name="criador" value={formData.criador || ''} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="criador" className="block text-sm font-medium text-neutral-400 mb-1">Criador</label>
+              <input id="criador" name="criador" value={formData.criador || ''} placeholder="Criador" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Proprietário / Fazenda</label>
-              <input name="fazenda" value={formData.fazenda || ''} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="fazenda" className="block text-sm font-medium text-neutral-400 mb-1">Proprietário / Fazenda</label>
+              <input id="fazenda" name="fazenda" value={formData.fazenda || ''} placeholder="Fazenda" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             {formData.sexo === 'M' ? (
               <div>
-                <label className="block text-sm font-medium text-neutral-400 mb-1">Central de Sêmen</label>
-                <input name="central_semen" value={formData.central_semen || ''} placeholder="Ex: Alta Genetics" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+                <label htmlFor="central_semen" className="block text-sm font-medium text-neutral-400 mb-1">Central de Sêmen</label>
+                <input id="central_semen" name="central_semen" value={formData.central_semen || ''} placeholder="Ex: Alta Genetics" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
               </div>
             ) : (
               <div>
-                <label className="block text-sm font-medium text-neutral-400 mb-1">Categoria Reprodutiva</label>
-                <input name="categoria_reprodutiva" value={formData.categoria_reprodutiva || ''} placeholder="Ex: Doadora" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+                <label htmlFor="categoria_reprodutiva" className="block text-sm font-medium text-neutral-400 mb-1">Categoria Reprodutiva</label>
+                <input id="categoria_reprodutiva" name="categoria_reprodutiva" value={formData.categoria_reprodutiva || ''} placeholder="Ex: Doadora" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Proprietário</label>
-              <input name="proprietario" value={formData.proprietario || ''} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="proprietario" className="block text-sm font-medium text-neutral-400 mb-1">Proprietário</label>
+              <input id="proprietario" name="proprietario" value={formData.proprietario || ''} placeholder="Proprietário" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Município / UF</label>
-              <input name="municipio_uf" value={formData.municipio_uf || ''} placeholder="Ex: Uberaba/MG" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="municipio_uf" className="block text-sm font-medium text-neutral-400 mb-1">Município / UF</label>
+              <input id="municipio_uf" name="municipio_uf" value={formData.municipio_uf || ''} placeholder="Ex: Uberaba/MG" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Consanguinidade (%)</label>
-              <input type="number" step="any" min="0" max="100" name="consanguinidade_pct" value={formData.consanguinidade_pct ?? ''} onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="consanguinidade_pct" className="block text-sm font-medium text-neutral-400 mb-1">Consanguinidade (%)</label>
+              <input id="consanguinidade_pct" type="number" step="any" min="0" max="100" name="consanguinidade_pct" value={formData.consanguinidade_pct ?? ''} placeholder="Consanguinidade (%)" onChange={handleChange} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div className="flex items-center space-x-3 pt-6">
               <input type="checkbox" name="genotipado" id="genotipado" checked={!!formData.genotipado} onChange={handleChange} className="w-5 h-5 rounded border-neutral-700 bg-neutral-900 text-emerald-500 focus:ring-emerald-500/50" />
@@ -312,16 +312,16 @@ function AnimalForm() {
           <p className="text-sm text-neutral-500 mb-4">No MVP, adicione o nome/registro do pai e da mãe. Relacionamentos complexos virão no roadmap.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Pai</label>
-              <input name="pedigree_pai" value={pedigree.pai} onChange={(e) => setPedigree((p) => ({ ...p, pai: e.target.value }))} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="pedigree_pai" className="block text-sm font-medium text-neutral-400 mb-1">Pai</label>
+              <input id="pedigree_pai" name="pedigree_pai" value={pedigree.pai} placeholder="Nome/registro do pai" onChange={(e) => setPedigree((p) => ({ ...p, pai: e.target.value }))} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Mãe</label>
-              <input name="pedigree_mae" value={pedigree.mae} onChange={(e) => setPedigree((p) => ({ ...p, mae: e.target.value }))} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="pedigree_mae" className="block text-sm font-medium text-neutral-400 mb-1">Mãe</label>
+              <input id="pedigree_mae" name="pedigree_mae" value={pedigree.mae} placeholder="Nome/registro da mãe" onChange={(e) => setPedigree((p) => ({ ...p, mae: e.target.value }))} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Avô Materno</label>
-              <input name="pedigree_avo_mat" value={pedigree.avo_mat} onChange={(e) => setPedigree((p) => ({ ...p, avo_mat: e.target.value }))} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
+              <label htmlFor="pedigree_avo_mat" className="block text-sm font-medium text-neutral-400 mb-1">Avô Materno</label>
+              <input id="pedigree_avo_mat" name="pedigree_avo_mat" value={pedigree.avo_mat} placeholder="Nome/registro do avô materno" onChange={(e) => setPedigree((p) => ({ ...p, avo_mat: e.target.value }))} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50" />
             </div>
           </div>
         </section>

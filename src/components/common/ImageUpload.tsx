@@ -135,7 +135,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onUploaded, onRemoved 
         )}
       </div>
 
-      <input ref={inputRef} type="file" accept="image/*" onChange={onSelect} className="hidden" />
+      <input ref={inputRef} type="file" accept="image/*" onChange={onSelect} className="hidden" title="Upload de imagem" />
       {error && <p className="text-sm text-red-400">{error}</p>}
     </div>
   );

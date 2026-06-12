@@ -191,8 +191,10 @@ const EvaluationForm: React.FC = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Programa *</label>
+              <label htmlFor="programa" className="block text-sm font-medium text-neutral-400 mb-1">Programa *</label>
               <select
+                id="programa"
+                title="Programa de Avaliação"
                 value={programa}
                 onChange={(e) => setPrograma(e.target.value as ProgramaAvaliacao)}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50"
@@ -205,8 +207,9 @@ const EvaluationForm: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Edição / Sumário</label>
+              <label htmlFor="edicao" className="block text-sm font-medium text-neutral-400 mb-1">Edição / Sumário</label>
               <input
+                id="edicao"
                 value={edicao}
                 onChange={(e) => setEdicao(e.target.value)}
                 placeholder="Ex: 2023-3, 4ª AG AGO/2023"
@@ -214,25 +217,31 @@ const EvaluationForm: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Data de Referência</label>
+              <label htmlFor="data_ref" className="block text-sm font-medium text-neutral-400 mb-1">Data de Referência</label>
               <input
+                id="data_ref"
                 type="date"
+                title="Data de Referência"
+                placeholder="Selecione a data"
                 value={dataRef}
                 onChange={(e) => setDataRef(e.target.value)}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Base Genética</label>
+              <label htmlFor="base_genetica" className="block text-sm font-medium text-neutral-400 mb-1">Base Genética</label>
               <input
+                id="base_genetica"
                 value={baseGenetica}
+                placeholder="Ex: PMGZ 2023-2"
                 onChange={(e) => setBaseGenetica(e.target.value)}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Índice Resumo (Nome)</label>
+              <label htmlFor="indice_nome" className="block text-sm font-medium text-neutral-400 mb-1">Índice Resumo (Nome)</label>
               <input
+                id="indice_nome"
                 value={indiceNome}
                 onChange={(e) => setIndiceNome(e.target.value)}
                 placeholder="Ex: IQGg, iABCZg, MGTe"
@@ -240,10 +249,12 @@ const EvaluationForm: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-400 mb-1">Índice Resumo (Valor)</label>
+              <label htmlFor="indice_valor" className="block text-sm font-medium text-neutral-400 mb-1">Índice Resumo (Valor)</label>
               <input
+                id="indice_valor"
                 type="number"
                 step="any"
+                placeholder="Ex: 15.4"
                 value={indiceValor}
                 onChange={(e) => setIndiceValor(e.target.value)}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500/50"
