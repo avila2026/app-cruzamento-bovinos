@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { Animal } from '../../types';
 import { Search, Trash2, ArrowUpCircle, FileSpreadsheet, ExternalLink } from 'lucide-react';
@@ -10,28 +10,37 @@ const ObservationList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchObservedAnimals();
-  }, []);
-
-  const fetchObservedAnimals = async () => {
+  const fetchObservedAnimals = useCallback(async (abortController?: AbortController) => {
     try {
+      await Promise.resolve();
+      if (abortController?.signal.aborted) return;
       setLoading(true);
       const { data, error } = await supabase
         .from('animal')
         .select('*')
         .eq('is_observed', true)
         .order('nome_exibicao');
-
+      if (abortController?.signal.aborted) return;
       if (error) throw error;
       setAnimals(data || []);
     } catch (error) {
-      console.error('Erro ao buscar animais em observação:', error);
-      toast.error('Não foi possível carregar a lista de observação.');
+      if (abortController?.signal.aborted) return;
+      console.error('Error fetching observed animals:', error);
     } finally {
-      setLoading(false);
+      if (!abortController?.signal.aborted) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchObservedAnimals(controller);
+    return () => {
+      controller.abort();
+    };
+  }, [fetchObservedAnimals]);
 
   const handlePromote = async (id: string, name: string) => {
     try {

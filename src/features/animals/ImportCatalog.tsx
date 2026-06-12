@@ -209,8 +209,9 @@ const ImportCatalog: React.FC = () => {
 
       toast.success(`${successCount} animais importados com sucesso para a lista de observação!`);
       navigate('/observacao');
-    } catch (err: any) {
-      toast.error(err.message || 'Erro durante a importação.');
+    } catch (err) {
+      const error = err as Error;
+      toast.error(error.message || 'Erro durante a importação.');
     } finally {
       setIsImporting(false);
     }

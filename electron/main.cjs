@@ -3,6 +3,10 @@ const path = require('path');
 
 const isDev = !app.isPackaged;
 
+if (isDev) {
+  process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+}
+
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1400,

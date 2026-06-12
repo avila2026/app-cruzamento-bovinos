@@ -189,7 +189,7 @@ const Assistant: React.FC = () => {
                 <span>Conexão:</span>
                 <select
                   value={provider}
-                  onChange={(e) => setProvider(e.target.value as any)}
+                  onChange={(e) => setProvider(e.target.value as 'supabase' | 'ollama')}
                   className="bg-neutral-800 text-neutral-200 border border-neutral-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium cursor-pointer"
                   title="Conexão"
                 >

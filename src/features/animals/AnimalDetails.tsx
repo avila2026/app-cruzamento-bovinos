@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import type {
@@ -38,61 +38,60 @@ const AnimalDetails: React.FC = () => {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ProgramaAvaliacao>('GENEPLUS');
 
-  useEffect(() => {
-    if (id) fetchAll(id);
-  }, [id]);
-
-  const fetchAll = async (animalId: string) => {
+  const fetchAll = useCallback(async (animalId: string, abortController?: AbortController) => {
     try {
+      await Promise.resolve();
+      if (abortController?.signal.aborted) return;
       setLoading(true);
-      const [
-        animalRes,
-        relRes,
-        evalRes,
-        dictRes,
-        photoRes,
-      ] = await Promise.all([
+      const [{ data: animalData, error: animalError }, { data: relationsData }, { data: evaluationsData }, { data: dictData }, { data: photoData }] = await Promise.all([
         supabase.from('animal').select('*').eq('id', animalId).single(),
         supabase.from('animal_relation').select('*').eq('animal_id', animalId),
-        supabase.from('evaluation').select('*').eq('animal_id', animalId),
+        supabase.from('evaluation').select('*').eq('animal_id', animalId).order('data_avaliacao', { ascending: false }),
         supabase.from('trait_dictionary').select('*'),
-        supabase
-          .from('file_asset')
-          .select('*')
-          .eq('animal_id', animalId)
-          .eq('tipo', 'FOTO')
-          .order('created_at', { ascending: false })
-          .limit(1),
+        supabase.storage.from('animal-photos').list(animalId, { limit: 1, sortBy: { column: 'created_at', order: 'desc' } })
       ]);
 
-      if (animalRes.error) throw animalRes.error;
-      setAnimal(animalRes.data);
-      setRelations(relRes.data || []);
-      setEvaluations(evalRes.data || []);
-      setDictionary(dictRes.data || []);
-      setPhotoUrl(photoRes.data?.[0]?.arquivo_url || null);
-
-      const evalIds = (evalRes.data || []).map((e) => e.id);
-      if (evalIds.length) {
-        const { data: traitData } = await supabase
-          .from('evaluation_trait')
-          .select('*')
-          .in('evaluation_id', evalIds);
-        setTraits(traitData || []);
-      } else {
-        setTraits([]);
+      let traitsData: EvaluationTrait[] | null = null;
+      if (evaluationsData && evaluationsData.length > 0) {
+        const evaluationIds = evaluationsData.map((e: Evaluation) => e.id);
+        const { data: tData } = await supabase.from('evaluation_trait').select('*').in('evaluation_id', evaluationIds);
+        traitsData = tData;
       }
 
-      // Garante que a aba ativa exista
-      const programasPresentes = (evalRes.data || []).map((e) => e.programa);
-      const firstPresent = PROGRAMAS.find((p) => programasPresentes.includes(p));
-      if (firstPresent) setActiveTab(firstPresent);
+      if (abortController?.signal.aborted) return;
+
+      if (animalError) throw animalError;
+      setAnimal(animalData);
+      setRelations(relationsData ?? []);
+      setEvaluations(evaluationsData ?? []);
+      setTraits(traitsData ?? []);
+      setDictionary(dictData ?? []);
+      if (photoData && photoData.length > 0) {
+        const { data: urlData } = supabase.storage.from('animal-photos').getPublicUrl(`${animalId}/${photoData[0].name}`);
+        setPhotoUrl(urlData.publicUrl);
+      }
     } catch (err) {
+      if (abortController?.signal.aborted) return;
       console.error('Erro ao carregar ficha:', err);
+      toast.error('Erro ao carregar ficha do animal');
     } finally {
-      setLoading(false);
+      if (!abortController?.signal.aborted) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    if (id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchAll(id, controller);
+    }
+    return () => {
+      controller.abort();
+    };
+  }, [id, fetchAll]);
+
 
   const handleDeleteAnimal = async () => {
     if (!animal) return;

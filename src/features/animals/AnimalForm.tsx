@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ImageUpload from '../../components/common/ImageUpload';
 import { toast } from 'sonner';
 
-const AnimalForm: React.FC = () => {
+function AnimalForm() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
@@ -15,54 +15,65 @@ const AnimalForm: React.FC = () => {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [pedigree, setPedigree] = useState({ pai: '', mae: '', avo_mat: '' });
   const [formData, setFormData] = useState<Partial<Animal>>({
+    nome_exibicao: '',
     sexo: 'M',
+    raca: 'Nelore',
+    rgd: '',
+    rgn: '',
+    registro_composto: '',
+    data_nascimento: '',
     status: 'ativo',
     genotipado: false,
-    raca: 'Nelore',
+    consanguinidade_pct: undefined,
+    central_semen: '',
+    criador: '',
+    fazenda: '',
   });
 
+
   useEffect(() => {
+    const loadAnimal = async (animalId: string) => {
+      try {
+        setLoadingData(true);
+        const [animalRes, relRes, photoRes] = await Promise.all([
+          supabase.from('animal').select('*').eq('id', animalId).single(),
+          supabase.from('animal_relation').select('*').eq('animal_id', animalId),
+          supabase
+            .from('file_asset')
+            .select('*')
+            .eq('animal_id', animalId)
+            .eq('tipo', 'FOTO')
+            .order('created_at', { ascending: false })
+            .limit(1),
+        ]);
+
+        if (animalRes.error) throw animalRes.error;
+        const a = animalRes.data as Animal;
+        setFormData({
+          ...a,
+          // input[type=date] espera YYYY-MM-DD
+          data_nascimento: a.data_nascimento ? a.data_nascimento.split('T')[0] : '',
+        });
+
+        const rel = relRes.data || [];
+        setPedigree({
+          pai: rel.find((r) => r.relation_type === 'PAI')?.related_name || '',
+          mae: rel.find((r) => r.relation_type === 'MAE')?.related_name || '',
+          avo_mat: rel.find((r) => r.relation_type === 'AVO_MATERNO')?.related_name || '',
+        });
+
+        setPhotoUrl(photoRes.data?.[0]?.arquivo_url || null);
+      } catch (err) {
+        const error = err as Error;
+        console.error(error);
+        toast.error('Erro ao carregar animal: ' + error.message);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
     if (isEdit && id) loadAnimal(id);
   }, [id, isEdit]);
-
-  const loadAnimal = async (animalId: string) => {
-    try {
-      setLoadingData(true);
-      const [animalRes, relRes, photoRes] = await Promise.all([
-        supabase.from('animal').select('*').eq('id', animalId).single(),
-        supabase.from('animal_relation').select('*').eq('animal_id', animalId),
-        supabase
-          .from('file_asset')
-          .select('*')
-          .eq('animal_id', animalId)
-          .eq('tipo', 'FOTO')
-          .order('created_at', { ascending: false })
-          .limit(1),
-      ]);
-
-      if (animalRes.error) throw animalRes.error;
-      const a = animalRes.data as Animal;
-      setFormData({
-        ...a,
-        // input[type=date] espera YYYY-MM-DD
-        data_nascimento: a.data_nascimento ? a.data_nascimento.split('T')[0] : '',
-      });
-
-      const rel = relRes.data || [];
-      setPedigree({
-        pai: rel.find((r) => r.relation_type === 'PAI')?.related_name || '',
-        mae: rel.find((r) => r.relation_type === 'MAE')?.related_name || '',
-        avo_mat: rel.find((r) => r.relation_type === 'AVO_MATERNO')?.related_name || '',
-      });
-
-      setPhotoUrl(photoRes.data?.[0]?.arquivo_url || null);
-    } catch (err: any) {
-      console.error(err);
-      toast.error('Erro ao carregar animal: ' + err.message);
-    } finally {
-      setLoadingData(false);
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -145,9 +156,10 @@ const AnimalForm: React.FC = () => {
 
       toast.success(isEdit ? 'Animal atualizado com sucesso!' : 'Animal salvo com sucesso!');
       navigate(`/animais/${animalId}`);
-    } catch (err: any) {
-      console.error(err);
-      toast.error('Erro ao salvar: ' + err.message);
+    } catch (err) {
+      const error = err as Error;
+      console.error(error);
+      toast.error('Erro ao salvar: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -327,6 +339,6 @@ const AnimalForm: React.FC = () => {
       </form>
     </div>
   );
-};
+}
 
 export default AnimalForm;

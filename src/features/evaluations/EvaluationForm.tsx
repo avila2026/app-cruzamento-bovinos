@@ -152,9 +152,10 @@ const EvaluationForm: React.FC = () => {
 
       toast.success(isEdit ? 'Avaliação atualizada com sucesso!' : 'Avaliação lançada com sucesso!');
       navigate(`/animais/${animalId}`);
-    } catch (err: any) {
-      console.error(err);
-      toast.error('Erro ao salvar avaliação: ' + err.message);
+    } catch (err) {
+      const error = err as Error;
+      console.error(error);
+      toast.error('Erro ao salvar avaliação: ' + error.message);
     } finally {
       setLoading(false);
     }

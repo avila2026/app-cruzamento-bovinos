@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { Animal } from '../../types';
 import { Plus, Search, Filter } from 'lucide-react';
@@ -8,12 +8,10 @@ const AnimalList: React.FC<{ defaultFilter?: 'M' | 'F' }> = ({ defaultFilter }) 
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAnimals();
-  }, [defaultFilter]);
-
-  const fetchAnimals = async () => {
+  const fetchAnimals = useCallback(async (abortController?: AbortController) => {
     try {
+      await Promise.resolve();
+      if (abortController?.signal.aborted) return;
       setLoading(true);
       let query = supabase.from('animal').select('*').neq('is_observed', true).order('nome_exibicao');
       
@@ -23,14 +21,27 @@ const AnimalList: React.FC<{ defaultFilter?: 'M' | 'F' }> = ({ defaultFilter }) 
       
       const { data, error } = await query;
       
+      if (abortController?.signal.aborted) return;
       if (error) throw error;
       setAnimals(data || []);
     } catch (error) {
+      if (abortController?.signal.aborted) return;
       console.error('Error fetching animals:', error);
     } finally {
-      setLoading(false);
+      if (!abortController?.signal.aborted) {
+        setLoading(false);
+      }
     }
-  };
+  }, [defaultFilter]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchAnimals(controller);
+    return () => {
+      controller.abort();
+    };
+  }, [fetchAnimals]);
 
   return (
     <div className="space-y-6">

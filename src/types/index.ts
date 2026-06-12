@@ -59,7 +59,7 @@ export interface Evaluation {
   rank_resumo_tipo?: RankTipo;
   rank_resumo_valor?: number;
   fonte_imagem?: string;
-  raw_payload?: Record<string, any>;
+  raw_payload?: Record<string, unknown>;
   created_at?: string;
 }
 

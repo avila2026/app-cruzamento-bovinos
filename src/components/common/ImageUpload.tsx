@@ -56,9 +56,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onUploaded, onRemoved 
         const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
         setPreview(data.publicUrl);
         onUploaded(data.publicUrl);
-      } catch (err: any) {
-        console.error('Erro no upload:', err);
-        setError(err.message || 'Falha ao enviar a imagem.');
+      } catch (err) {
+        const error = err as Error;
+        console.error('Erro no upload:', error);
+        setError(error.message || 'Falha ao enviar a imagem.');
         setPreview(value ?? null);
       } finally {
         setUploading(false);

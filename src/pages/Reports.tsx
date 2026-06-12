@@ -12,7 +12,7 @@ interface MatingRow extends Mating {
   dam_name?: string;
 }
 
-export function generatePdf(matingData: MatingRow[]) {
+function generatePdf(matingData: MatingRow[]) {
   const body: (string | number | null)[][] = [
     ['Objetivo', 'Touro', 'Fêmea', 'Score', 'Confiança'],
   ];
