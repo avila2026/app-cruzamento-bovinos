@@ -4,6 +4,11 @@ import { useChatHistory } from '../../hooks/useChatHistory';
 
 import { Bot, Send, Square, Trash2, User, Copy, Check, Paperclip, MessageSquare, Plus, Archive, ArchiveRestore } from 'lucide-react';
 
+// O Ollama depende de um daemon local (proxy /ollama do Vite em dev). Em
+// produção (Hostinger) só o backend Supabase está disponível, salvo se uma
+// URL pública de Ollama for fornecida via VITE_OLLAMA_BASE_URL no build.
+const OLLAMA_DISPONIVEL = import.meta.env.DEV || Boolean(import.meta.env.VITE_OLLAMA_BASE_URL);
+
 const SUGESTOES = [
   'O que significa a DEP de Peso à Desmama?',
   'Compare um touro com DPDG alta e PN baixo: é bom para novilhas?',
@@ -185,18 +190,20 @@ const Assistant: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-100">Assistente Genético</h1>
             <div className="flex items-center gap-4 mt-1">
-              <div className="flex items-center gap-1.5 text-xs text-neutral-400">
-                <span>Conexão:</span>
-                <select
-                  value={provider}
-                  onChange={(e) => setProvider(e.target.value as 'supabase' | 'ollama')}
-                  className="bg-neutral-800 text-neutral-200 border border-neutral-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium cursor-pointer"
-                  title="Conexão"
-                >
-                  <option value="supabase">Supabase (Nuvem)</option>
-                  <option value="ollama">Ollama (Local)</option>
-                </select>
-              </div>
+              {OLLAMA_DISPONIVEL && (
+                <div className="flex items-center gap-1.5 text-xs text-neutral-400">
+                  <span>Conexão:</span>
+                  <select
+                    value={provider}
+                    onChange={(e) => setProvider(e.target.value as 'supabase' | 'ollama')}
+                    className="bg-neutral-800 text-neutral-200 border border-neutral-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium cursor-pointer"
+                    title="Conexão"
+                  >
+                    <option value="supabase">Supabase (Nuvem)</option>
+                    <option value="ollama">Ollama (Local)</option>
+                  </select>
+                </div>
+              )}
               <div className="flex items-center gap-1.5 text-xs text-neutral-400">
                 <span>Modelo:</span>
                 <select
