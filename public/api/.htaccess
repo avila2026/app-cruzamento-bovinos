@@ -1,0 +1,5 @@
+# Protege arquivos internos da API de acesso direto pelo navegador.
+# (Mesmo executando como PHP, negar acesso é defesa em profundidade.)
+<FilesMatch "^(_db\.php|db_config\.php|db_config\.example\.php)$">
+  Require all denied
+</FilesMatch>
