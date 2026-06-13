@@ -21,7 +21,7 @@ cors();
 // é enviar esse token no header Authorization e validá-lo aqui.
 // Enquanto a verificação real não é implementada, exigimos ao menos a presença
 // de um token para não deixar o endpoint totalmente aberto.
-$authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+$authHeader = get_authorization_header();
 if (!str_starts_with($authHeader, 'Bearer ')) {
     send_error('Não autorizado.', 401);
 }

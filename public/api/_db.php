@@ -39,9 +39,14 @@ function db(): PDO
         return $pdo;
     }
     $c = db_config();
-    $dsn = sprintf('mysql:host=%s;dbname=%s;charset=%s', $c['host'], $c['name'], $c['charset'] ?? 'utf8mb4');
+    $host    = $c['host'] ?? 'localhost';
+    $name    = $c['name'] ?? '';
+    $charset = $c['charset'] ?? 'utf8mb4';
+    $user    = $c['user'] ?? '';
+    $pass    = $c['pass'] ?? '';
+    $dsn = sprintf('mysql:host=%s;dbname=%s;charset=%s', $host, $name, $charset);
     try {
-        $pdo = new PDO($dsn, $c['user'], $c['pass'], [
+        $pdo = new PDO($dsn, $user, $pass, [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
@@ -52,6 +57,28 @@ function db(): PDO
         send_error('Falha ao conectar ao banco de dados.', 500);
     }
     return $pdo;
+}
+
+/**
+ * Lê o header Authorization de forma robusta. Em Apache/LiteSpeed (Hostinger)
+ * o header costuma ser descartado ou renomeado antes de chegar ao PHP, então
+ * checamos múltiplas fontes.
+ */
+function get_authorization_header(): string
+{
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        return trim($_SERVER['HTTP_AUTHORIZATION']);
+    }
+    if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        return trim($_SERVER['REDIRECT_HTTP_AUTHORIZATION']);
+    }
+    if (function_exists('apache_request_headers')) {
+        $headers = array_change_key_case(apache_request_headers(), CASE_LOWER);
+        if (isset($headers['authorization'])) {
+            return trim($headers['authorization']);
+        }
+    }
+    return '';
 }
 
 function cors(): void
