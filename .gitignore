@@ -14,6 +14,9 @@ dist
 dist-ssr
 *.local
 
+# Credenciais reais da API PHP da Hostinger (nunca versionar)
+public/api/db_config.php
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
